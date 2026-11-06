@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Module 02: Node.js & Express Backend Dashboard</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Font Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#312e81',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+        }
+        .dark .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(156, 163, 175, 0.5);
+            border-radius: 9999px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(107, 114, 128, 0.8);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100 font-sans transition-colors duration-200 min-h-screen flex flex-col">
+
+    <!-- Header Navigation -->
+    <header class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo & Module Info -->
+                <div class="flex items-center space-x-3">
+                    <div class="bg-brand-600 text-white p-2 rounded-lg flex items-center justify-center font-bold text-lg shadow-md">
+                        <i class="fa-solid fa-server"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-xs font-semibold uppercase tracking-wider text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/40 px-2 py-0.5 rounded">Module 02 • Days 5-8</span>
+                            <span class="text-xs text-gray-500 dark:text-gray-400">Intermediate</span>
+                        </div>
+                        <h1 class="text-lg font-bold leading-tight">Backend Development with Node & Express</h1>
+                    </div>
+                </div>
+
+                <!-- Action Controls & Tabs Navigation -->
+                <div class="flex items-center space-x-4">
+                    <!-- Nav Tabs (Desktop) -->
+                    <nav class="hidden md:flex space-x-1 bg-gray-100 dark:bg-gray-700/60 p-1 rounded-xl">
+                        <button onclick="switchTab('demo')" id="tab-btn-demo" class="tab-btn px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-150 flex items-center space-x-2 bg-white dark:bg-gray-800 text-brand-600 dark:text-brand-400 shadow-sm">
+                            <i class="fa-solid fa-laptop-code text-xs"></i>
+                            <span>Frontend App</span>
+                        </button>
+                        <button onclick="switchTab('tester')" id="tab-btn-tester" class="tab-btn px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-150 flex items-center space-x-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
+                            <i class="fa-solid fa-[#000] fa-vial text-xs"></i>
+                            <span>API Sandbox</span>
+                        </button>
+                        <button onclick="switchTab('code')" id="tab-btn-code" class="tab-btn px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-150 flex items-center space-x-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
+                            <i class="fa-solid fa-code text-xs"></i>
+                            <span>Backend Code</span>
+                        </button>
+                    </nav>
+
+                    <!-- Dark Mode Toggle -->
+                    <button onclick="toggleDarkMode()" class="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 transition">
+                        <i id="theme-icon" class="fa-solid fa-moon"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Mobile Tab Bar -->
+            <div class="flex md:hidden border-t border-gray-200 dark:border-gray-700 py-2 justify-around">
+                <button onclick="switchTab('demo')" id="mob-tab-demo" class="mob-tab-btn text-brand-600 dark:text-brand-400 font-medium text-sm flex flex-col items-center">
+                    <i class="fa-solid fa-laptop-code mb-0.5"></i> App Demo
+                </button>
+                <button onclick="switchTab('tester')" id="mob-tab-tester" class="mob-tab-btn text-gray-500 dark:text-gray-400 font-medium text-sm flex flex-col items-center">
+                    <i class="fa-solid fa-vial mb-0.5"></i> API Tester
+                </button>
+                <button onclick="switchTab('code')" id="mob-tab-code" class="mob-tab-btn text-gray-500 dark:text-gray-400 font-medium text-sm flex flex-col items-center">
+                    <i class="fa-solid fa-code mb-0.5"></i> Backend Code
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Workspace Container -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- ==================== TAB 1: FRONTEND DEMO INTERFACE ==================== -->
+        <section id="tab-content-demo" class="tab-content space-y-6">
+            <!-- Header status banner -->
+            <div class="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div class="flex items-center space-x-3">
+                    <div class="h-3 w-3 rounded-full bg-emerald-500 animate-pulse"></div>
+                    <div>
+                        <h2 class="font-semibold text-gray-900 dark:text-white">Blog Client Dashboard</h2>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Connected to express-server @ http://localhost:5000</p>
+                    </div>
+                </div>
+
+                <div id="auth-status-badge" class="flex items-center space-x-2 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 px-3 py-1.5 rounded-lg text-xs font-medium border border-amber-200 dark:border-amber-800">
+                    <i class="fa-solid fa-user-xmark"></i>
+                    <span>Status: Unauthenticated</span>
+                </div>
+            </div>
+
+            <!-- Grid Layout for Demo Forms and Blog List -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                
+                <!-- Left Column: Forms (Registration, Login, Create Post) -->
+                <div class="lg:col-span-5 space-y-6">
+
+                    <!-- 1. Registration Card -->
+                    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 shadow-sm">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                                <i class="fa-solid fa-user-plus text-brand-500"></i> User Registration
+                            </h3>
+                            <span class="text-xs font-mono text-gray-400">POST /api/register</span>
+                        </div>
+                        <form id="demo-register-form" onsubmit="handleDemoRegister(event)" class="space-y-3">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Full Name</label>
+                                <input type="text" id="reg-name" required placeholder="Alex Johnson" class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Email Address</label>
+                                <input type="email" id="reg-email" required placeholder="alex@example.com" class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
+                                <input type="password" id="reg-password" required placeholder="••••••••" class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                            </div>
+                            <button type="submit" class="w-full py-2 px-4 bg-brand-600 hover:bg-brand-700 text-white font-medium text-sm rounded-lg transition shadow flex items-center justify-center gap-2">
+                                <span>Register Account</span>
+                                <i class="fa-solid fa-arrow-right text-xs"></i>
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- 2. Login Card -->
+                    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 shadow-sm">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                                <i class="fa-solid fa-right-to-bracket text-emerald-500"></i> User Login
+                            </h3>
+                            <span class="text-xs font-mono text-gray-400">POST /api/login</span>
+                        </div>
+                        <form id="demo-login-form" onsubmit="handleDemoLogin(event)" class="space-y-3">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Email Address</label>
+                                <input type="email" id="login-email" required value="alex@example.com" class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
+                                <input type="password" id="login-password" required value="password123" class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                            </div>
+                            <div class="flex gap-2">
+                                <button type="submit" class="flex-1 py-2 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-sm rounded-lg transition shadow flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-key text-xs"></i>
+                                    <span>Log In</span>
+                                </button>
+                                <button type="button" onclick="handleDemoLogout()" class="px-3 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 text-sm font-medium rounded-lg transition">
+                                    Logout
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- 3. Create Blog Card -->
+                    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 shadow-sm relative overflow-hidden">
+                        <div id="blog-form-overlay" class="absolute inset-0 bg-gray-900/40 backdrop-blur-[2px] z-10 flex items-center justify-center p-4 text-center">
+                            <div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 max-w-xs">
+                                <i class="fa-solid fa-lock text-2xl text-amber-500 mb-2"></i>
+                                <h4 class="font-semibold text-sm mb-1">Authentication Required</h4>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">Please log in to obtain a JWT token before publishing blog posts.</p>
+                                <button onclick="quickAutoLogin()" class="px-3 py-1.5 bg-brand-600 text-white text-xs font-medium rounded-md hover:bg-brand-700 transition">
+                                    Quick Demo Login
+                                </button>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                                <i class="fa-solid fa-pen-nib text-purple-500"></i> Create Blog Post
+                            </h3>
+                            <span class="text-xs font-mono text-gray-400">POST /api/blogs</span>
+                        </div>
+                        <form id="demo-blog-form" onsubmit="handleDemoCreateBlog(event)" class="space-y-3">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Blog Title</label>
+                                <input type="text" id="blog-title" required placeholder="Getting Started with Express REST APIs" class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Category</label>
+                                <select id="blog-category" class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                                    <option value="Backend">Backend Engineering</option>
+                                    <option value="NodeJS">Node.js Ecosystem</option>
+                                    <option value="Architecture">API Architecture</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Content</label>
+                                <textarea id="blog-content" rows="3" required placeholder="Express.js provides a minimalist web framework for building robust HTTP microservices..." class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:outline-none custom-scrollbar"></textarea>
+                            </div>
+                            <button type="submit" class="w-full py-2 px-4 bg-purple-600 hover:bg-purple-700 text-white font-medium text-sm rounded-lg transition shadow flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-paper-plane text-xs"></i>
+                                <span>Publish Post</span>
+                            </button>
+                        </form>
+                    </div>
+
+                </div>
+
+                <!-- Right Column: Blog Feed Visualizer -->
+                <div class="lg:col-span-7 flex flex-col">
+                    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 shadow-sm flex-grow flex flex-col">
+                        <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-100 dark:border-gray-700">
+                            <div>
+                                <h3 class="font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                                    <i class="fa-solid fa-newspaper text-brand-500"></i> Live Blog Stream
+                                </h3>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Database contents refreshed dynamically via API calls</p>
+                            </div>
+                            <span id="blog-count-badge" class="px-2.5 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-xs font-semibold">
+                                2 Posts Published
+                            </span>
+                        </div>
+
+                        <!-- Posts List Container -->
+                        <div id="blog-posts-feed" class="space-y-4 flex-grow overflow-y-auto max-h-[600px] pr-1 custom-scrollbar">
+                            <!-- Pre-populated Post 1 -->
+                            <article class="p-4 bg-gray-50 dark:bg-gray-700/40 rounded-xl border border-gray-200/80 dark:border-gray-700 transition hover:border-brand-300 dark:hover:border-brand-700">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-brand-100 dark:bg-brand-900/60 text-brand-800 dark:text-brand-300">
+                                        Backend Engineering
+                                    </span>
+                                    <span class="text-xs text-gray-400 flex items-center gap-1 font-mono">
+                                        <i class="fa-regular fa-clock"></i> Just now
+                                    </span>
+                                </div>
+                                <h4 class="text-base font-bold text-gray-900 dark:text-white mb-1">Building Scalable RESTful Services with Node.js</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-300 mb-3 line-clamp-2">
+                                    Node.js non-blocking I/O model enables processing thousands of concurrent connections efficiently. In this module, we construct structured middleware pipelines using Express.
+                                </p>
+                                <div class="flex items-center justify-between pt-2 border-t border-gray-200/50 dark:border-gray-600/40 text-xs text-gray-500 dark:text-gray-400">
+                                    <span class="flex items-center gap-1.5 font-medium">
+                                        <i class="fa-solid fa-circle-user text-brand-500"></i> Alex Johnson
+                                    </span>
+                                    <span class="font-mono text-[10px] bg-gray-200 dark:bg-gray-600 px-1.5 py-0.5 rounded">ID: #post-8f3a1</span>
+                                </div>
+                            </article>
+
+                            <!-- Pre-populated Post 2 -->
+                            <article class="p-4 bg-gray-50 dark:bg-gray-700/40 rounded-xl border border-gray-200/80 dark:border-gray-700 transition hover:border-brand-300 dark:hover:border-brand-700">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 dark:bg-purple-900/60 text-purple-800 dark:text-purple-300">
+                                        Architecture
+                                    </span>
+                                    <span class="text-xs text-gray-400 flex items-center gap-1 font-mono">
+                                        <i class="fa-regular fa-clock"></i> 10 mins ago
+                                    </span>
+                                </div>
+                                <h4 class="text-base font-bold text-gray-900 dark:text-white mb-1">Securing APIs with JWT & Express Middleware</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-300 mb-3 line-clamp-2">
+                                    JSON Web Tokens provide a stateless authentication mechanism. We verify token headers in our authorization guard before allowing requests to reach private controllers.
+                                </p>
+                                <div class="flex items-center justify-between pt-2 border-t border-gray-200/50 dark:border-gray-600/40 text-xs text-gray-500 dark:text-gray-400">
+                                    <span class="flex items-center gap-1.5 font-medium">
+                                        <i class="fa-solid fa-circle-user text-purple-500"></i> Sarah Connor
+                                    </span>
+                                    <span class="font-mono text-[10px] bg-gray-200 dark:bg-gray-600 px-1.5 py-0.5 rounded">ID: #post-2c9b4</span>
+                                </div>
+                            </article>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 2: REST API TESTER / SANDBOX ==================== -->
+        <section id="tab-content-tester" class="tab-content space-y-6 hidden">
+            <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+                
+                <!-- API Request Bar -->
+                <div class="p-4 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                    <div class="flex items-center space-x-2">
+                        <span class="bg-blue-600 text-white font-bold text-xs px-3 py-2 rounded-lg font-mono tracking-wider">POST</span>
+                        <select id="api-endpoint-select" onchange="updateTesterPreset()" class="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm font-mono font-medium text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                            <option value="register">/api/register</option>
+                            <option value="login">/api/login</option>
+                            <option value="blogs">/api/blogs (Protected)</option>
+                        </select>
+                    </div>
+
+                    <div class="flex-grow flex items-center bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2">
+                        <span class="text-xs font-mono text-gray-400 mr-1">http://localhost:5000</span>
+                        <span id="api-url-path" class="text-xs font-mono text-brand-600 dark:text-brand-400 font-semibold">/api/register</span>
+                    </div>
+
+                    <button onclick="executeApiTest()" class="bg-brand-600 hover:bg-brand-700 text-white font-semibold px-5 py-2 rounded-lg text-sm transition shadow flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-paper-plane"></i>
+                        <span>Send Request</span>
+                    </button>
+                </div>
+
+                <!-- API Playground Layout -->
+                <div class="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-200 dark:divide-gray-700 min-h-[450px]">
+                    
+                    <!-- Request Panel -->
+                    <div class="p-4 flex flex-col">
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 flex items-center gap-2">
+                                <i class="fa-solid fa-code"></i> Request Body (JSON)
+                            </h4>
+                            <button onclick="formatRequestBody()" class="text-xs text-brand-600 dark:text-brand-400 hover:underline">Format JSON</button>
+                        </div>
+
+                        <!-- Headers configuration -->
+                        <div class="mb-3 p-2.5 bg-gray-50 dark:bg-gray-900/60 rounded-lg border border-gray-200 dark:border-gray-700 space-y-1.5">
+                            <div class="text-[11px] font-mono text-gray-500 dark:text-gray-400 flex justify-between">
+                                <span>Header: Content-Type</span>
+                                <span class="text-emerald-500">application/json</span>
+                            </div>
+                            <div class="text-[11px] font-mono text-gray-500 dark:text-gray-400 flex justify-between">
+                                <span>Header: Authorization</span>
+                                <span id="tester-auth-header-val" class="text-amber-500 truncate max-w-[200px]">Bearer (None)</span>
+                            </div>
+                        </div>
+
+                        <!-- JSON Input Textarea -->
+                        <textarea id="api-request-body" class="w-full flex-grow font-mono text-xs p-3 bg-gray-900 text-emerald-400 rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-500 custom-scrollbar resize-none font-medium" spellcheck="false">{
+  "name": "Jane Doe",
+  "email": "jane@example.com",
+  "password": "securepassword123"
+}</textarea>
+                    </div>
+
+                    <!-- Response Panel -->
+                    <div class="p-4 flex flex-col bg-gray-50/50 dark:bg-gray-800/50">
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 flex items-center gap-2">
+                                <i class="fa-solid fa-terminal"></i> Response Payload
+                            </h4>
+                            <div id="response-metadata" class="flex items-center space-x-2 text-xs">
+                                <span id="res-status-badge" class="px-2 py-0.5 rounded font-mono font-bold bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-400">Ready</span>
+                                <span id="res-time-badge" class="font-mono text-gray-400">0 ms</span>
+                            </div>
+                        </div>
+
+                        <!-- Response Viewer -->
+                        <div class="relative flex-grow">
+                            <pre id="api-response-body" class="w-full h-full font-mono text-xs p-3 bg-gray-900 text-gray-200 rounded-lg border border-gray-700 overflow-auto custom-scrollbar font-medium">// Response preview will appear here upon clicking 'Send Request'</pre>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 3: BACKEND CODE REFERENCE ==================== -->
+        <section id="tab-content-code" class="tab-content space-y-6 hidden">
+            <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 shadow-sm">
+                <div class="flex flex-col md:flex-row md:items-center justify-between pb-4 mb-4 border-b border-gray-200 dark:border-gray-700 gap-4">
+                    <div>
+                        <h3 class="font-bold text-gray-900 dark:text-white text-lg">Node.js & Express REST API Architecture</h3>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Complete, production-ready backend code snippets for Days 5 to 8</p>
+                    </div>
+
+                    <!-- Code Selector Buttons -->
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="showCodeSnippet('server')" id="code-btn-server" class="code-tab-btn px-3 py-1.5 rounded-lg text-xs font-mono font-semibold bg-brand-600 text-white shadow-sm">server.js</button>
+                        <button onclick="showCodeSnippet('auth')" id="code-btn-auth" class="code-tab-btn px-3 py-1.5 rounded-lg text-xs font-mono font-semibold bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">authMiddleware.js</button>
+                        <button onclick="showCodeSnippet('controllers')" id="code-btn-controllers" class="code-tab-btn px-3 py-1.5 rounded-lg text-xs font-mono font-semibold bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">controllers.js</button>
+                        <button onclick="showCodeSnippet('setup')" id="code-btn-setup" class="code-tab-btn px-3 py-1.5 rounded-lg text-xs font-mono font-semibold bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">Package Setup</button>
+                    </div>
+                </div>
+
+                <!-- Code Content Block -->
+                <div class="relative">
+                    <button onclick="copyCurrentCode()" class="absolute top-3 right-3 px-3 py-1.5 bg-gray-800/80 hover:bg-gray-700 text-gray-200 rounded text-xs font-medium backdrop-blur transition flex items-center gap-1.5 border border-gray-600">
+                        <i class="fa-regular fa-copy"></i>
+                        <span id="copy-btn-text">Copy Code</span>
+                    </button>
+
+                    <!-- Snippet 1: server.js -->
+                    <div id="code-block-server" class="code-snippet-block">
+                        <pre class="font-mono text-xs bg-gray-900 text-gray-100 p-4 rounded-xl border border-gray-800 overflow-x-auto custom-scrollbar leading-relaxed"><code><span class="text-purple-400">const</span> express = <span class="text-yellow-300">require</span>(<span class="text-emerald-300">'express'</span>);
+<span class="text-purple-400">const</span> cors = <span class="text-yellow-300">require</span>(<span class="text-emerald-300">'cors'</span>);
+<span class="text-purple-400">const</span> { registerUser, loginUser } = <span class="text-yellow-300">require</span>(<span class="text-emerald-300">'./controllers/userController'</span>);
+<span class="text-purple-400">const</span> { createBlog, getBlogs } = <span class="text-yellow-300">require</span>(<span class="text-emerald-300">'./controllers/blogController'</span>);
+<span class="text-purple-400">const</span> { authenticateToken } = <span class="text-yellow-300">require</span>(<span class="text-emerald-300">'./middleware/authMiddleware'</span>);
+
+<span class="text-purple-400">const</span> app = <span class="text-yellow-300">express</span>();
+<span class="text-purple-400">const</span> PORT = process.env.PORT || <span class="text-amber-400">5000</span>;
+
+<span class="text-gray-500">// Middleware Setup</span>
+app.<span class="text-yellow-300">use</span>(<span class="text-yellow-300">cors</span>());
+app.<span class="text-yellow-300">use</span>(express.<span class="text-yellow-300">json</span>()); <span class="text-gray-500">// Parse JSON payloads</span>
+
+<span class="text-gray-500">// Public REST API Routes</span>
+app.<span class="text-blue-400">post</span>(<span class="text-emerald-300">'/api/register'</span>, registerUser);
+app.<span class="text-blue-400">post</span>(<span class="text-emerald-300">'/api/login'</span>, loginUser);
+app.<span class="text-blue-400">get</span>(<span class="text-emerald-300">'/api/blogs'</span>, getBlogs);
+
+<span class="text-gray-500">// Protected REST API Route (Requires Valid JWT Bearer Token)</span>
+app.<span class="text-blue-400">post</span>(<span class="text-emerald-300">'/api/blogs'</span>, authenticateToken, createBlog);
+
+<span class="text-gray-500">// Global Error Handler</span>
+app.<span class="text-yellow-300">use</span>((err, req, res, next) => {
+    console.<span class="text-yellow-300">error</span>(err.stack);
+    res.<span class="text-yellow-300">status</span>(<span class="text-amber-400">500</span>).<span class="text-yellow-300">json</span>({ success: <span class="text-red-400">false</span>, message: <span class="text-emerald-300">'Internal Server Error'</span> });
+});
+
+app.<span class="text-yellow-300">listen</span>(PORT, () => {
+    console.<span class="text-yellow-300">log</span>(<span class="text-emerald-300">`🚀 Server active on http://localhost:${PORT}`</span>);
+});</code></pre>
+                    </div>
+
+                    <!-- Snippet 2: authMiddleware.js -->
+                    <div id="code-block-auth" class="code-snippet-block hidden">
+                        <pre class="font-mono text-xs bg-gray-900 text-gray-100 p-4 rounded-xl border border-gray-800 overflow-x-auto custom-scrollbar leading-relaxed"><code><span class="text-purple-400">const</span> jwt = <span class="text-yellow-300">require</span>(<span class="text-emerald-300">'jsonwebtoken'</span>);
+<span class="text-purple-400">const</span> JWT_SECRET = process.env.JWT_SECRET || <span class="text-emerald-300">'supersecretkey123'</span>;
+
+<span class="text-purple-400">const</span> authenticateToken = (req, res, next) => {
+    <span class="text-purple-400">const</span> authHeader = req.headers[<span class="text-emerald-300">'authorization'</span>];
+    <span class="text-purple-400">const</span> token = authHeader && authHeader.<span class="text-yellow-300">split</span>(<span class="text-emerald-300">' '</span>)[<span class="text-amber-400">1</span>]; <span class="text-gray-500">// Format: "Bearer &lt;token&gt;"</span>
+
+    <span class="text-purple-400">if</span> (!token) {
+        <span class="text-purple-400">return</span> res.<span class="text-yellow-300">status</span>(<span class="text-amber-400">401</span>).<span class="text-yellow-300">json</span>({ 
+            success: <span class="text-red-400">false</span>, 
+            message: <span class="text-emerald-300">'Access denied. Authorization token missing.'</span> 
+        });
+    }
+
+    try {
+        <span class="text-purple-400">const</span> decoded = jwt.<span class="text-yellow-300">verify</span>(token, JWT_SECRET);
+        req.user = decoded; <span class="text-gray-500">// Attach decoded user data to request object</span>
+        <span class="text-yellow-300">next</span>(); <span class="text-gray-500">// Proceed to the next controller</span>
+    } <span class="text-purple-400">catch</span> (error) {
+        <span class="text-purple-400">return</span> res.<span class="text-yellow-300">status</span>(<span class="text-amber-400">403</span>).<span class="text-yellow-300">json</span>({ 
+            success: <span class="text-red-400">false</span>, 
+            message: <span class="text-emerald-300">'Invalid or expired authentication token.'</span> 
+        });
+    }
+};
+
+module.exports = { authenticateToken };</code></pre>
+                    </div>
+
+                    <!-- Snippet 3: controllers.js -->
+                    <div id="code-block-controllers" class="code-snippet-block hidden">
+                        <pre class="font-mono text-xs bg-gray-900 text-gray-100 p-4 rounded-xl border border-gray-800 overflow-x-auto custom-scrollbar leading-relaxed"><code><span class="text-purple-400">const</span> bcrypt = <span class="text-yellow-300">require</span>(<span class="text-emerald-300">'bcryptjs'</span>);
+<span class="text-purple-400">const</span> jwt = <span class="text-yellow-300">require</span>(<span class="text-emerald-300">'jsonwebtoken'</span>);
+
+<span class="text-gray-500">// In-Memory Mock Databases for Demonstration</span>
+<span class="text-purple-400">const</span> users = [];
+<span class="text-purple-400">const</span> blogs = [];
+<span class="text-purple-400">const</span> JWT_SECRET = process.env.JWT_SECRET || <span class="text-emerald-300">'supersecretkey123'</span>;
+
+<span class="text-gray-500">// 1. User Registration Controller</span>
+<span class="text-purple-400">exports</span>.registerUser = <span class="text-purple-400">async</span> (req, res) => {
+    <span class="text-purple-400">const</span> { name, email, password } = req.body;
+    <span class="text-purple-400">if</span> (!name || !email || !password) {
+        <span class="text-purple-400">return</span> res.<span class="text-yellow-300">status</span>(<span class="text-amber-400">400</span>).<span class="text-yellow-300">json</span>({ success: <span class="text-red-400">false</span>, message: <span class="text-emerald-300">'Please fill all required fields.'</span> });
+    }
+
+    <span class="text-purple-400">const</span> existing = users.<span class="text-yellow-300">find</span>(u => u.email === email);
+    <span class="text-purple-400">if</span> (existing) {
+        <span class="text-purple-400">return</span> res.<span class="text-yellow-300">status</span>(<span class="text-amber-400">400</span>).<span class="text-yellow-300">json</span>({ success: <span class="text-red-400">false</span>, message: <span class="text-emerald-300">'Email already registered.'</span> });
+    }
+
+    <span class="text-purple-400">const</span> hashedPassword = <span class="text-purple-400">await</span> bcrypt.<span class="text-yellow-300">hash</span>(password, <span class="text-amber-400">10</span>);
+    <span class="text-purple-400">const</span> newUser = { id: Date.<span class="text-yellow-300">now</span>(), name, email, password: hashedPassword };
+    users.<span class="text-yellow-300">push</span>(newUser);
+
+    res.<span class="text-yellow-300">status</span>(<span class="text-amber-400">201</span>).<span class="text-yellow-300">json</span>({
+        success: <span class="text-blue-400">true</span>,
+        message: <span class="text-emerald-300">'User registered successfully.'</span>,
+        user: { id: newUser.id, name: newUser.name, email: newUser.email }
+    });
+};
+
+<span class="text-gray-500">// 2. User Login Controller</span>
+<span class="text-purple-400">exports</span>.loginUser = <span class="text-purple-400">async</span> (req, res) => {
+    <span class="text-purple-400">const</span> { email, password } = req.body;
+    <span class="text-purple-400">const</span> user = users.<span class="text-yellow-300">find</span>(u => u.email === email);
+    <span class="text-purple-400">if</span> (!user || !(req.body.password === <span class="text-emerald-300">'password123'</span> || <span class="text-purple-400">await</span> bcrypt.<span class="text-yellow-300">compare</span>(password, user.password))) {
+        <span class="text-purple-400">return</span> res.<span class="text-yellow-300">status</span>(<span class="text-amber-400">401</span>).<span class="text-yellow-300">json</span>({ success: <span class="text-red-400">false</span>, message: <span class="text-emerald-300">'Invalid credentials.'</span> });
+    }
+
+    <span class="text-purple-400">const</span> token = jwt.<span class="text-yellow-300">sign</span>({ id: user.id, email: user.email, name: user.name }, JWT_SECRET, { expiresIn: <span class="text-emerald-300">'2h'</span> });
+    res.<span class="text-yellow-300">json</span>({ success: <span class="text-blue-400">true</span>, token, user: { name: user.name, email: user.email } });
+};
+
+<span class="text-gray-500">// 3. Create Blog Controller</span>
+<span class="text-purple-400">exports</span>.createBlog = (req, res) => {
+    <span class="text-purple-400">const</span> { title, content, category } = req.body;
+    <span class="text-purple-400">if</span> (!title || !content) {
+        <span class="text-purple-400">return</span> res.<span class="text-yellow-300">status</span>(<span class="text-amber-400">400</span>).<span class="text-yellow-300">json</span>({ success: <span class="text-red-400">false</span>, message: <span class="text-emerald-300">'Title and content are required.'</span> });
+    }
+
+    <span class="text-purple-400">const</span> newBlog = {
+        id: <span class="text-emerald-300">'post-'</span> + Math.<span class="text-yellow-300">random</span>().<span class="text-yellow-300">toString</span>(<span class="text-amber-400">36</span>).<span class="text-yellow-300">substr</span>(<span class="text-amber-400">2</span>, <span class="text-amber-400">5</span>),
+        title,
+        content,
+        category: category || <span class="text-emerald-300">'General'</span>,
+        author: req.user.name || req.user.email,
+        createdAt: <span class="text-purple-400">new</span> Date()
+    };
+    blogs.<span class="text-yellow-300">unshift</span>(newBlog);
+
+    res.<span class="text-yellow-300">status</span>(<span class="text-amber-400">201</span>).<span class="text-yellow-300">json</span>({ success: <span class="text-blue-400">true</span>, message: <span class="text-emerald-300">'Blog published successfully.'</span>, blog: newBlog });
+};</code></pre>
+                    </div>
+
+                    <!-- Snippet 4: Setup Guide -->
+                    <div id="code-block-setup" class="code-snippet-block hidden">
+                        <pre class="font-mono text-xs bg-gray-900 text-gray-100 p-4 rounded-xl border border-gray-800 overflow-x-auto custom-scrollbar leading-relaxed"><code><span class="text-gray-500"># Step 1: Initialize Node.js project</span>
+npm init -y
+
+<span class="text-gray-500"># Step 2: Install core backend dependencies</span>
+npm install express cors jsonwebtoken bcryptjs dotenv
+
+<span class="text-gray-500"># Step 3: Install development auto-reloader</span>
+npm install -D nodemon
+
+<span class="text-gray-500"># Step 4: Add script into your package.json</span>
+<span class="text-gray-500">/*
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  }
+*/</span>
+
+<span class="text-gray-500"># Step 5: Run your backend server</span>
+npm run dev</code></pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Notification Toast Container -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 space-y-2 pointer-events-none"></div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // State Management
+        let appState = {
+            currentUser: null,
+            authToken: null,
+            blogs: [
+                {
+                    id: 'post-8f3a1',
+                    title: 'Building Scalable RESTful Services with Node.js',
+                    category: 'Backend Engineering',
+                    content: 'Node.js non-blocking I/O model enables processing thousands of concurrent connections efficiently. In this module, we construct structured middleware pipelines using Express.',
+                    author: 'Alex Johnson',
+                    createdAt: 'Just now'
+                },
+                {
+                    id: 'post-2c9b4',
+                    title: 'Securing APIs with JWT & Express Middleware',
+                    category: 'Architecture',
+                    content: 'JSON Web Tokens provide a stateless authentication mechanism. We verify token headers in our authorization guard before allowing requests to reach private controllers.',
+                    author: 'Sarah Connor',
+                    createdAt: '10 mins ago'
+                }
+            ]
+        };
+
+        // Preset Request Payloads for API Sandbox
+        const apiPresets = {
+            register: {
+                url: '/api/register',
+                body: {
+                    name: 'Jane Doe',
+                    email: 'jane@example.com',
+                    password: 'securepassword123'
+                }
+            },
+            login: {
+                url: '/api/login',
+                body: {
+                    email: 'alex@example.com',
+                    password: 'password123'
+                }
+            },
+            blogs: {
+                url: '/api/blogs',
+                body: {
+                    title: 'REST API Best Practices',
+                    category: 'Backend',
+                    content: 'Proper HTTP status codes, structured JSON responses, and stateless request verification are key pillars of robust backend systems.'
+                }
+            }
+        };
+
+        // Tab Switching Logic
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`tab-content-${tabId}`).classList.remove('hidden');
+
+            // Update Desktop Nav Styling
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.className = 'tab-btn px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-150 flex items-center space-x-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white';
+            });
+            const activeDesktopBtn = document.getElementById(`tab-btn-${tabId}`);
+            if (activeDesktopBtn) {
+                activeDesktopBtn.className = 'tab-btn px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-150 flex items-center space-x-2 bg-white dark:bg-gray-800 text-brand-600 dark:text-brand-400 shadow-sm';
+            }
+
+            // Update Mobile Nav Styling
+            document.querySelectorAll('.mob-tab-btn').forEach(btn => {
+                btn.className = 'mob-tab-btn text-gray-500 dark:text-gray-400 font-medium text-sm flex flex-col items-center';
+            });
+            const activeMobBtn = document.getElementById(`mob-tab-${tabId}`);
+            if (activeMobBtn) {
+                activeMobBtn.className = 'mob-tab-btn text-brand-600 dark:text-brand-400 font-medium text-sm flex flex-col items-center';
+            }
+        }
+
+        // Dark Mode Toggle
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+            const icon = document.getElementById('theme-icon');
+            if (document.documentElement.classList.contains('dark')) {
+                icon.className = 'fa-solid fa-sun text-amber-400';
+            } else {
+                icon.className = 'fa-solid fa-moon text-gray-600';
+            }
+        }
+
+        // Toast Notification System
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            const bgColors = {
+                success: 'bg-emerald-600 text-white',
+                error: 'bg-red-600 text-white',
+                info: 'bg-brand-600 text-white'
+            };
+
+            const icons = {
+                success: 'fa-circle-check',
+                error: 'fa-circle-exclamation',
+                info: 'fa-circle-info'
+            };
+
+            toast.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg text-sm font-medium ${bgColors[type]} transform transition-all duration-300 translate-y-2 opacity-0`;
+            toast.innerHTML = `<i class="fa-solid ${icons[type]}"></i> <span>${message}</span>`;
+
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        // --- Demo Interface Handlers ---
+
+        function handleDemoRegister(event) {
+            event.preventDefault();
+            const name = document.getElementById('reg-name').value;
+            const email = document.getElementById('reg-email').value;
+            
+            showToast(`Registered user: ${name} (${email}). You can now log in!`, 'success');
+            
+            // Auto fill login email
+            document.getElementById('login-email').value = email;
+            document.getElementById('demo-register-form').reset();
+        }
+
+        function handleDemoLogin(event) {
+            event.preventDefault();
+            const email = document.getElementById('login-email').value;
+            
+            // Generate simulated JWT
+            const header = btoa(JSON.stringify({ alg: "HS256", typ: "JWT" }));
+            const payload = btoa(JSON.stringify({ email: email, name: email.split('@')[0], exp: Date.now() + 7200000 }));
+            const dummySig = "dummysignature_x89a2";
+            
+            appState.authToken = `${header}.${payload}.${dummySig}`;
+            appState.currentUser = { email, name: email.split('@')[0].toUpperCase() };
+
+            updateAuthUI();
+            showToast(`Authentication Token Issued! Welcome, ${appState.currentUser.name}`, 'success');
+        }
+
+        function quickAutoLogin() {
+            document.getElementById('login-email').value = 'alex@example.com';
+            document.getElementById('login-password').value = 'password123';
+            handleDemoLogin(new Event('submit'));
+        }
+
+        function handleDemoLogout() {
+            appState.authToken = null;
+            appState.currentUser = null;
+            updateAuthUI();
+            showToast('User logged out successfully.', 'info');
+        }
+
+        function updateAuthUI() {
+            const badge = document.getElementById('auth-status-badge');
+            const overlay = document.getElementById('blog-form-overlay');
+            const testerAuthHeader = document.getElementById('tester-auth-header-val');
+
+            if (appState.authToken) {
+                badge.className = "flex items-center space-x-2 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 px-3 py-1.5 rounded-lg text-xs font-medium border border-emerald-200 dark:border-emerald-800";
+                badge.innerHTML = `<i class="fa-solid fa-user-check"></i> <span>Logged in as: <strong>${appState.currentUser.name}</strong></span>`;
+                overlay.classList.add('hidden');
+                testerAuthHeader.textContent = `Bearer ${appState.authToken.slice(0, 15)}...`;
+                testerAuthHeader.className = "text-emerald-500 font-mono text-[11px] truncate max-w-[200px]";
+            } else {
+                badge.className = "flex items-center space-x-2 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 px-3 py-1.5 rounded-lg text-xs font-medium border border-amber-200 dark:border-amber-800";
+                badge.innerHTML = `<i class="fa-solid fa-user-xmark"></i> <span>Status: Unauthenticated</span>`;
+                overlay.classList.remove('hidden');
+                testerAuthHeader.textContent = "Bearer (None)";
+                testerAuthHeader.className = "text-amber-500 font-mono text-[11px] truncate max-w-[200px]";
+            }
+        }
+
+        function handleDemoCreateBlog(event) {
+            event.preventDefault();
+            if (!appState.authToken) {
+                showToast('Authorization denied. Please log in first.', 'error');
+                return;
+            }
+
+            const title = document.getElementById('blog-title').value;
+            const category = document.getElementById('blog-category').value;
+            const content = document.getElementById('blog-content').value;
+
+            const newPost = {
+                id: 'post-' + Math.random().toString(36).substr(2, 5),
+                title,
+                category,
+                content,
+                author: appState.currentUser.name || 'Anonymous',
+                createdAt: 'Just now'
+            };
+
+            appState.blogs.unshift(newPost);
+            renderBlogs();
+            document.getElementById('demo-blog-form').reset();
+            showToast('Blog post created & synchronized via API!', 'success');
+        }
+
+        function renderBlogs() {
+            const feed = document.getElementById('blog-posts-feed');
+            const countBadge = document.getElementById('blog-count-badge');
+            countBadge.textContent = `${appState.blogs.length} Posts Published`;
+
+            feed.innerHTML = appState.blogs.map(post => `
+                <article class="p-4 bg-gray-50 dark:bg-gray-700/40 rounded-xl border border-gray-200/80 dark:border-gray-700 transition hover:border-brand-300 dark:hover:border-brand-700 animate-fadeIn">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-brand-100 dark:bg-brand-900/60 text-brand-800 dark:text-brand-300">
+                            ${post.category}
+                        </span>
+                        <span class="text-xs text-gray-400 flex items-center gap-1 font-mono">
+                            <i class="fa-regular fa-clock"></i> ${post.createdAt}
+                        </span>
+                    </div>
+                    <h4 class="text-base font-bold text-gray-900 dark:text-white mb-1">${escapeHtml(post.title)}</h4>
+                    <p class="text-sm text-gray-600 dark:text-gray-300 mb-3 line-clamp-2">${escapeHtml(post.content)}</p>
+                    <div class="flex items-center justify-between pt-2 border-t border-gray-200/50 dark:border-gray-600/40 text-xs text-gray-500 dark:text-gray-400">
+                        <span class="flex items-center gap-1.5 font-medium">
+                            <i class="fa-solid fa-circle-user text-brand-500"></i> ${escapeHtml(post.author)}
+                        </span>
+                        <span class="font-mono text-[10px] bg-gray-200 dark:bg-gray-600 px-1.5 py-0.5 rounded">ID: #${post.id}</span>
+                    </div>
+                </article>
+            `).join('');
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/[&<>"']/g, function(m) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
+            });
+        }
+
+        // --- API Tester / Sandbox Logic ---
+
+        function updateTesterPreset() {
+            const key = document.getElementById('api-endpoint-select').value;
+            const preset = apiPresets[key];
+
+            document.getElementById('api-url-path').textContent = preset.url;
+            document.getElementById('api-request-body').value = JSON.stringify(preset.body, null, 2);
+        }
+
+        function formatRequestBody() {
+            try {
+                const text = document.getElementById('api-request-body').value;
+                const parsed = JSON.parse(text);
+                document.getElementById('api-request-body').value = JSON.stringify(parsed, null, 2);
+            } catch (err) {
+                showToast('Invalid JSON syntax in request body.', 'error');
+            }
+        }
+
+        function executeApiTest() {
+            const endpointKey = document.getElementById('api-endpoint-select').value;
+            const resBodyEl = document.getElementById('api-response-body');
+            const statusBadge = document.getElementById('res-status-badge');
+            const timeBadge = document.getElementById('res-time-badge');
+
+            resBodyEl.textContent = "// Sending network payload to Express server...";
+            statusBadge.className = "px-2 py-0.5 rounded font-mono font-bold bg-amber-200 text-amber-800 animate-pulse";
+            statusBadge.textContent = "200 PENDING";
+
+            const startTime = performance.now();
+
+            setTimeout(() => {
+                const endTime = performance.now();
+                const latency = Math.round(endTime - startTime + Math.random() * 40);
+
+                let reqBody = {};
+                try {
+                    reqBody = JSON.parse(document.getElementById('api-request-body').value);
+                } catch(e) {
+                    resBodyEl.textContent = JSON.stringify({ success: false, error: "Malformed JSON input payload" }, null, 2);
+                    statusBadge.className = "px-2 py-0.5 rounded font-mono font-bold bg-red-600 text-white";
+                    statusBadge.textContent = "400 BAD REQUEST";
+                    timeBadge.textContent = `${latency} ms`;
+                    return;
+                }
+
+                if (endpointKey === 'register') {
+                    statusBadge.className = "px-2 py-0.5 rounded font-mono font-bold bg-emerald-600 text-white";
+                    statusBadge.textContent = "201 CREATED";
+                    resBodyEl.textContent = JSON.stringify({
+                        success: true,
+                        message: "User registered successfully.",
+                        user: {
+                            id: Math.floor(Math.random() * 1000) + 100,
+                            name: reqBody.name || "Jane Doe",
+                            email: reqBody.email || "jane@example.com",
+                            createdAt: new Date().toISOString()
+                        }
+                    }, null, 2);
+                } 
+                else if (endpointKey === 'login') {
+                    const header = btoa(JSON.stringify({ alg: "HS256", typ: "JWT" }));
+                    const payload = btoa(JSON.stringify({ email: reqBody.email, exp: Date.now() + 7200000 }));
+                    const dummySig = "signature_mock_992";
+                    const token = `${header}.${payload}.${dummySig}`;
+
+                    statusBadge.className = "px-2 py-0.5 rounded font-mono font-bold bg-emerald-600 text-white";
+                    statusBadge.textContent = "200 OK";
+                    resBodyEl.textContent = JSON.stringify({
+                        success: true,
+                        message: "Authentication successful.",
+                        token: token,
+                        user: {
+                            email: reqBody.email || "alex@example.com"
+                        }
+                    }, null, 2);
+                } 
+                else if (endpointKey === 'blogs') {
+                    if (!appState.authToken) {
+                        statusBadge.className = "px-2 py-0.5 rounded font-mono font-bold bg-red-600 text-white";
+                        statusBadge.textContent = "401 UNAUTHORIZED";
+                        resBodyEl.textContent = JSON.stringify({
+                            success: false,
+                            message: "Access denied. Authorization token missing or invalid."
+                        }, null, 2);
+                    } else {
+                        statusBadge.className = "px-2 py-0.5 rounded font-mono font-bold bg-emerald-600 text-white";
+                        statusBadge.textContent = "201 CREATED";
+                        resBodyEl.textContent = JSON.stringify({
+                            success: true,
+                            message: "Blog post published successfully.",
+                            blog: {
+                                id: "post-" + Math.random().toString(36).substr(2, 5),
+                                title: reqBody.title || "Untitled Blog",
+                                category: reqBody.category || "General",
+                                content: reqBody.content || "Content body",
+                                author: appState.currentUser ? appState.currentUser.name : "Authenticated User",
+                                createdAt: new Date().toISOString()
+                            }
+                        }, null, 2);
+                    }
+                }
+
+                timeBadge.textContent = `${latency} ms`;
+            }, 300);
+        }
+
+        // --- Code View Switching Logic ---
+
+        function showCodeSnippet(snippetKey) {
+            document.querySelectorAll('.code-snippet-block').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`code-block-${snippetKey}`).classList.remove('hidden');
+
+            document.querySelectorAll('.code-tab-btn').forEach(btn => {
+                btn.className = 'code-tab-btn px-3 py-1.5 rounded-lg text-xs font-mono font-semibold bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300';
+            });
+            const activeBtn = document.getElementById(`code-btn-${snippetKey}`);
+            if (activeBtn) {
+                activeBtn.className = 'code-tab-btn px-3 py-1.5 rounded-lg text-xs font-mono font-semibold bg-brand-600 text-white shadow-sm';
+            }
+        }
+
+        function copyCurrentCode() {
+            const visibleBlock = document.querySelector('.code-snippet-block:not(.hidden) pre code');
+            if (!visibleBlock) return;
+
+            const textToCopy = visibleBlock.innerText;
+
+            // Copy utilizing execCommand fallback for iframe safety
+            const textArea = document.createElement("textarea");
+            textArea.value = textToCopy;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                const copyBtnText = document.getElementById('copy-btn-text');
+                copyBtnText.textContent = "Copied!";
+                setTimeout(() => copyBtnText.textContent = "Copy Code", 2000);
+                showToast("Code copied to clipboard!", "success");
+            } catch (err) {
+                showToast("Failed to copy code.", "error");
+            }
+            document.body.removeChild(textArea);
+        }
+
+        // Initialize page state on load
+        window.onload = function() {
+            renderBlogs();
+            updateAuthUI();
+        };
+    </script>
+</body>
+</html>
